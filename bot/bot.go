@@ -50,7 +50,7 @@ func init() {
 		log.Fatalln(err)
 	}
 
-	log.Println("new discord session created")
+	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) { log.Println("new discord session created") })
 
 	err = s.Open()
 	if err != nil {
@@ -75,7 +75,6 @@ func main() {
 
 	cmdHandlerMap, cmdDefinitionList := cmd.PrepareCommands(stickerCommand, addStickerCommand)
 
-	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) { log.Println("Bot is up!") })
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if handler, ok := cmdHandlerMap[i.ApplicationCommandData().Name]; ok {
 			handler(s, i)
@@ -93,12 +92,12 @@ func main() {
 	stop := make(chan os.Signal)
 	signal.Notify(stop, os.Interrupt) //nolint: staticcheck
 	<-stop
-	log.Println("Gracefully shutting down")
+	log.Println("gracefully shutting down")
 
 	for _, c := range createdCommands {
 		err = s.ApplicationCommandDelete(s.State.User.ID, guildId, c.ID)
 		if err != nil {
-			log.Fatalf("Cannot delete %q command: %v", c.Name, err)
+			log.Fatalf("cannot delete %q command, %v", c.Name, err)
 		}
 	}
 }

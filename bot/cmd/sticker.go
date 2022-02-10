@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"time"
 )
@@ -50,11 +52,12 @@ func (c *StickerSlashCommand) Definition() *discordgo.ApplicationCommand {
 func (c *StickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
-		//data := i.ApplicationCommandData()
+		data := i.ApplicationCommandData()
+		imgUrl := data.Options[0].StringValue()
 		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "test interaction",
+				Content: imgUrl,
 			},
 		})
 		if err != nil {
@@ -68,17 +71,20 @@ func (c *StickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.Interac
 
 		if findAttr != "" {
 			collection := c.Database.Database("emobot").Collection("data")
+
+			findOpts := options.Find()
+			findOpts.SetLimit(25)
+
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			defer cancel()
 
-			res, err := collection.Find(ctx, bson.D{
-				{"name", findAttr + ".*/"},
-			})
+			res, err := collection.Find(ctx, bson.M{
+				"name": bson.M{"$regex": primitive.Regex{Pattern: findAttr + ".*", Options: "i"}},
+			}, findOpts)
 
 			if err == nil {
 				var stickers []StickerData
-				err = res.All(ctx, stickers)
-
+				err = res.All(ctx, &stickers)
 				for _, sticker := range stickers {
 					choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
 						Name:  sticker.Name,
@@ -86,7 +92,6 @@ func (c *StickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.Interac
 					})
 				}
 			}
-
 		}
 
 		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
