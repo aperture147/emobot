@@ -16,4 +16,4 @@ ENV BOT_TOKEN=placeholder \
     GUILD_ID=placeholder \
     MONGO_URI=placeholder
 
-ENTRYPOINT bot
+ENTRYPOINT /run/bot
