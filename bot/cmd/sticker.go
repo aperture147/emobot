@@ -172,7 +172,7 @@ func (c *AddStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.Inte
 	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "sticker added",
+			Content: "sticker `" + stickerName + "` added",
 		},
 	})
 	if err != nil {
