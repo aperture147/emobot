@@ -4,7 +4,7 @@ WORKDIR /build
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -gcflags="-l=5" -o bot ./bot
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -gcflags="-l -l -l -l -l" -o bot ./bot
 
 FROM alpine:3.15.0
 
