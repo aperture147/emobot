@@ -8,7 +8,7 @@ type SlashCommand interface {
 	Handler(s *discordgo.Session, i *discordgo.InteractionCreate)
 }
 
-func PrepareCommands(cmdList ...SlashCommand) (map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate), []*discordgo.ApplicationCommand) {
+func PrepareCommands(cmdList ...SlashCommand) (func(s *discordgo.Session, i *discordgo.InteractionCreate), []*discordgo.ApplicationCommand) {
 	cmdHandlerMap := make(map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate), len(cmdList))
 	cmdDefinitionList := make([]*discordgo.ApplicationCommand, len(cmdList))
 
@@ -17,5 +17,11 @@ func PrepareCommands(cmdList ...SlashCommand) (map[string]func(s *discordgo.Sess
 		cmdDefinitionList[index] = cmd.Definition()
 	}
 
-	return cmdHandlerMap, cmdDefinitionList
+	masterCmdHandler := func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if handler, ok := cmdHandlerMap[i.ApplicationCommandData().Name]; ok {
+			handler(s, i)
+		}
+	}
+
+	return masterCmdHandler, cmdDefinitionList
 }

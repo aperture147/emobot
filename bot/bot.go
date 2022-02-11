@@ -73,13 +73,9 @@ func main() {
 	stickerCommand := cmd.NewStickerSlashCommand(db)
 	addStickerCommand := cmd.NewAddStickerSlashCommand(db)
 
-	cmdHandlerMap, cmdDefinitionList := cmd.PrepareCommands(stickerCommand, addStickerCommand)
+	masterCmdHandler, cmdDefinitionList := cmd.PrepareCommands(stickerCommand, addStickerCommand)
 
-	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if handler, ok := cmdHandlerMap[i.ApplicationCommandData().Name]; ok {
-			handler(s, i)
-		}
-	})
+	s.AddHandler(masterCmdHandler)
 
 	guildId := os.Getenv("GUILD_ID")
 
