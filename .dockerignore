@@ -1,0 +1,9 @@
+.idea
+
+Dockerfile
+*.dockerfile
+heroku.yml
+*.md
+
+.gitignore
+.dockerignore
