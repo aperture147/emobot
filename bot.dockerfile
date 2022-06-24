@@ -1,12 +1,12 @@
-FROM golang:1.17.6-alpine3.15 AS build-env
+FROM golang:1.18.3-alpine3.16 AS build-env
 
 WORKDIR /build
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -gcflags="-l -l -l -l -l" -o bot ./bot
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -gcflags="-l -l -l -l" -o bot ./bot
 
-FROM alpine:3.15.0
+FROM alpine:3.16
 
 WORKDIR /run
 

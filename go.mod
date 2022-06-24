@@ -3,7 +3,7 @@ module emobot
 go 1.17
 
 require (
-	github.com/bwmarrin/discordgo v0.23.3-0.20220202194601-aba5dc811da8
+	github.com/bwmarrin/discordgo v0.25.0
 	go.mongodb.org/mongo-driver v1.8.3
 )
 
