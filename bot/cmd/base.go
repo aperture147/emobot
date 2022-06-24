@@ -40,6 +40,6 @@ func DeleteCreatedCommand(s *discordgo.Session, guildId string, createdCommands 
 		if err != nil {
 			log.Printf("cannot delete %q command on guild %s, %v\n", c.Name, guildId, err)
 		}
-		log.Printf("delete command %q on guild %s\n", c.Name, guildId)
 	}
+	log.Printf("deleted all commands on guild %s\n", guildId)
 }

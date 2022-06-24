@@ -5,6 +5,7 @@ import (
 	"emobot/bot/cmd"
 	"emobot/bot/cmd/server"
 	"emobot/bot/cmd/sticker"
+	"emobot/bot/cmd/word"
 	"emobot/bot/db"
 	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -62,10 +63,10 @@ func main() {
 
 	for _, guildId := range guildIdList {
 		guildDatabase := db.GetGuildDatabase(client, guildId)
-		stickerCollection := guildDatabase.Collection("sticker")
-		commands := sticker.NewAllStickerCommands(stickerCollection)
-		pingCommand := server.NewPingCommand(client)
-		commands = append(commands, pingCommand)
+		var commands []cmd.SlashCommand
+		commands = append(commands, server.NewPingCommand(client))
+		commands = append(commands, sticker.NewAllStickerCommands(guildDatabase.Collection("sticker"))...)
+		commands = append(commands, word.NewQuoteCommand(guildDatabase.Collection("quote")))
 
 		masterCmdHandler, cmdDefinitionList := cmd.PrepareCommands(guildId, commands...)
 

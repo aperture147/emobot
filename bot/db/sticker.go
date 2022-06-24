@@ -1,13 +1,10 @@
 package db
 
 import (
-	"context"
-	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"time"
 )
 
 type Sticker struct {
@@ -16,19 +13,12 @@ type Sticker struct {
 	Url      string `json:"url" bson:"url"`
 }
 
-func getContext() (context.Context, context.CancelFunc) {
-	return context.WithTimeout(context.Background(), 5*time.Second)
-}
-
 func GetSticker(collection *mongo.Collection, stickerId string) (*Sticker, error) {
 	ctx, cancel := getContext()
 	defer cancel()
-	objectId, err := primitive.ObjectIDFromHex(stickerId)
-	if err != nil {
-		if errors.Is(err, primitive.ErrInvalidHex) {
-			return nil, nil
-		}
-		return nil, err
+	objectId := getObjectId(stickerId)
+	if objectId == nil {
+		return nil, nil
 	}
 
 	findOpt := options.Find()
@@ -37,7 +27,7 @@ func GetSticker(collection *mongo.Collection, stickerId string) (*Sticker, error
 	})
 	result := collection.FindOne(ctx, bson.M{"_id": objectId})
 	var sticker Sticker
-	err = result.Decode(&sticker)
+	err := result.Decode(&sticker)
 	return &sticker, err
 }
 
@@ -52,12 +42,9 @@ func CreateSticker(collection *mongo.Collection, name string, url string) (strin
 func DeleteSticker(collection *mongo.Collection, stickerId string) (*Sticker, error) {
 	ctx, cancel := getContext()
 	defer cancel()
-	objectId, err := primitive.ObjectIDFromHex(stickerId)
-	if err != nil {
-		if errors.Is(err, primitive.ErrInvalidHex) {
-			return nil, nil
-		}
-		return nil, err
+	objectId := getObjectId(stickerId)
+	if objectId == nil {
+		return nil, nil
 	}
 
 	var sticker Sticker
@@ -65,7 +52,7 @@ func DeleteSticker(collection *mongo.Collection, stickerId string) (*Sticker, er
 	deleteResult := collection.FindOneAndDelete(ctx, bson.M{
 		"_id": objectId,
 	})
-	err = deleteResult.Decode(&sticker)
+	err := deleteResult.Decode(&sticker)
 	return &sticker, err
 }
 
