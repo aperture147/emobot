@@ -1,5 +1,7 @@
 FROM golang:1.18.3-alpine3.16 AS build-env
 
+RUN apk --no-cache add curl
+
 WORKDIR /build
 
 COPY . .
