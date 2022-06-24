@@ -3,97 +3,83 @@ package main
 import (
 	"context"
 	"emobot/bot/cmd"
+	"emobot/bot/cmd/sticker"
+	"emobot/bot/db"
 	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log"
 	"os"
 	"os/signal"
 	"time"
 )
 
-var s *discordgo.Session
-var db *mongo.Client
+var session *discordgo.Session
+var client *mongo.Client
 
+// init mongo client
 func init() {
 	var err error
-
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	mongoUri := os.Getenv("MONGO_URI")
-
-	db, err = mongo.Connect(ctx, options.Client().ApplyURI(mongoUri))
-
+	client, err = db.NewMongoClient()
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("cannot connect to mongo, ", err)
 	}
-
-	err = db.Ping(ctx, readpref.Primary())
-
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	log.Println("connected to mongo")
 }
 
 // init discord session
 func init() {
 	var err error
-
-	botToken := os.Getenv("BOT_TOKEN")
-
-	s, err = discordgo.New("Bot " + botToken)
+	session, err = cmd.NewDiscordSession()
 	if err != nil {
-		log.Fatalln(err)
-	}
-
-	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) { log.Println("new discord session created") })
-
-	err = s.Open()
-	if err != nil {
-		log.Fatalln(err)
+		log.Fatalln("cannot create discord token, ", err)
 	}
 }
 
 func main() {
-
-	defer s.Close()
 	defer func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		err := db.Disconnect(ctx)
+		err := session.Close()
 		if err != nil {
 			log.Println(err)
 		}
 	}()
 
-	stickerCommand := cmd.NewStickerSlashCommand(db)
-	addStickerCommand := cmd.NewAddStickerSlashCommand(db)
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		err := client.Disconnect(ctx)
+		if err != nil {
+			log.Println(err)
+		}
+	}()
 
-	masterCmdHandler, cmdDefinitionList := cmd.PrepareCommands(stickerCommand, addStickerCommand)
+	guildCollection := client.Database("global").Collection("guild")
+	guildIdList, err := db.GetGuildIdList(guildCollection)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-	s.AddHandler(masterCmdHandler)
+	userId := session.State.User.ID
 
-	guildId := os.Getenv("GUILD_ID")
+	for _, guildId := range guildIdList {
+		guildDatabase := db.GetGuildDatabase(client, guildId)
+		stickerCollection := guildDatabase.Collection("sticker")
+		stickerCommands := sticker.NewAllStickerCommands(stickerCollection)
+		masterCmdHandler, cmdDefinitionList := cmd.PrepareCommands(guildId, stickerCommands...)
 
-	createdCommands, err := s.ApplicationCommandBulkOverwrite(s.State.User.ID, guildId, cmdDefinitionList)
+		createdCommands, err := session.ApplicationCommandBulkOverwrite(userId, guildId, cmdDefinitionList)
+		session.AddHandler(masterCmdHandler)
+		if err != nil {
+			log.Println("failed to add command to guild "+guildId+" with reason: ", err)
+		}
+		log.Println("slash command added for guild " + guildId)
+		defer cmd.DeleteCreatedCommand(session, guildId, createdCommands)
+	}
 
 	if err != nil {
-		log.Println(err)
+		log.Fatalln(err)
 	}
 
 	stop := make(chan os.Signal)
-	signal.Notify(stop, os.Interrupt) //nolint: staticcheck
+	signal.Notify(stop, os.Interrupt)
 	<-stop
 	log.Println("gracefully shutting down")
-
-	for _, c := range createdCommands {
-		err = s.ApplicationCommandDelete(s.State.User.ID, guildId, c.ID)
-		if err != nil {
-			log.Fatalf("cannot delete %q command, %v", c.Name, err)
-		}
-	}
 }
