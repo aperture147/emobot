@@ -45,16 +45,16 @@ func (c *DeleteStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.I
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		data := i.ApplicationCommandData()
-		stickerName := data.Options[0].StringValue()
+		stickerId := data.Options[0].StringValue()
 
-		err := db.DeleteSticker(c.Collection, stickerName)
+		sticker, err := db.DeleteSticker(c.Collection, stickerId)
 
-		content := "sticker `" + stickerName + "` deleted"
+		content := "sticker `" + sticker.Name + "` deleted"
 		if err != nil {
 			content = "server error, cannot delete sticker"
 			log.Println("cannot delete sticker with reason: ", err)
 		}
-		log.Printf("user %s deleted sticker %s", i.Member.User.ID, stickerName)
+		log.Printf("user %s deleted sticker %s", i.Member.User.ID, stickerId)
 
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,

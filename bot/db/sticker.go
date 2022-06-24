@@ -38,10 +38,7 @@ func GetSticker(collection *mongo.Collection, stickerId string) (*Sticker, error
 	result := collection.FindOne(ctx, bson.M{"_id": objectId})
 	var sticker Sticker
 	err = result.Decode(&sticker)
-	if err != nil {
-		return nil, err
-	}
-	return &sticker, nil
+	return &sticker, err
 }
 
 func CreateSticker(collection *mongo.Collection, name string, url string) (string, error) {
@@ -52,13 +49,24 @@ func CreateSticker(collection *mongo.Collection, name string, url string) (strin
 	return stickerId.String(), err
 }
 
-func DeleteSticker(collection *mongo.Collection, name string) error {
+func DeleteSticker(collection *mongo.Collection, stickerId string) (*Sticker, error) {
 	ctx, cancel := getContext()
 	defer cancel()
-	_, err := collection.DeleteOne(ctx, bson.M{
-		"name": name,
+	objectId, err := primitive.ObjectIDFromHex(stickerId)
+	if err != nil {
+		if errors.Is(err, primitive.ErrInvalidHex) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	var sticker Sticker
+
+	deleteResult := collection.FindOneAndDelete(ctx, bson.M{
+		"_id": objectId,
 	})
-	return err
+	err = deleteResult.Decode(&sticker)
+	return &sticker, err
 }
 
 func GetStickerAutocompleteList(collection *mongo.Collection, findAttr string) ([]Sticker, error) {
