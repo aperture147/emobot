@@ -1,3 +1,6 @@
 build:
   docker:
+    release:
+      dockerfile: bot.dockerfile
+      target: build-env
     bot: bot.dockerfile

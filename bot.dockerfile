@@ -6,7 +6,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -gcflags="-l -l -l -l" -o bot ./bot
 
-FROM alpine:3.16
+FROM alpine:3.16 as run-env
 
 WORKDIR /run
 
