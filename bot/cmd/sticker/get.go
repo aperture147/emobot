@@ -9,7 +9,7 @@ import (
 )
 
 type GetStickerSlashCommand struct {
-	Collection *mongo.Collection
+	collection *mongo.Collection
 }
 
 const GetStickerCommandName = "sticker"
@@ -30,7 +30,7 @@ var GetStickerCommandDefinition = &discordgo.ApplicationCommand{
 }
 
 func NewGetStickerSlashCommand(collection *mongo.Collection) cmd.SlashCommand {
-	return &GetStickerSlashCommand{Collection: collection}
+	return &GetStickerSlashCommand{collection: collection}
 }
 
 func (c *GetStickerSlashCommand) Name() string {
@@ -46,18 +46,18 @@ func (c *GetStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.Inte
 	case discordgo.InteractionApplicationCommand:
 		data := i.ApplicationCommandData()
 		stickerId := data.Options[0].StringValue()
-		sticker, err := db.GetSticker(c.Collection, stickerId)
+		sticker, err := db.GetSticker(c.collection, stickerId)
 
 		var content string
 
 		if err != nil {
-			log.Println("cannot get sticker from db with reason:", err)
+			log.Println("cannot get sticker with reason:", err)
 			content = "server error, cannot get sticker"
 		} else if sticker == nil {
-			log.Printf("user %s cannot get sticker %s", i.Member.User.ID, stickerId)
+			log.Printf("user %s cannot get sticker %s\n", i.Member.User.ID, stickerId)
 			content = "no sticker found"
 		} else {
-			log.Printf("user %s used sticker %s", i.Member.User.ID, stickerId)
+			log.Printf("user %s used sticker %s\n", i.Member.User.ID, stickerId)
 			content = sticker.Url
 		}
 
@@ -79,7 +79,7 @@ func (c *GetStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.Inte
 		var err error
 
 		if findAttr != "" {
-			stickerChoices, err = GetStickerAutocompleteChoice(c.Collection, findAttr)
+			stickerChoices, err = GetStickerAutocompleteChoice(c.collection, findAttr)
 
 			if err != nil {
 				log.Println("autocomplete error with reason:", err)

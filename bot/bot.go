@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"emobot/bot/cmd"
+	"emobot/bot/cmd/server"
 	"emobot/bot/cmd/sticker"
 	"emobot/bot/db"
 	"github.com/bwmarrin/discordgo"
@@ -62,8 +63,11 @@ func main() {
 	for _, guildId := range guildIdList {
 		guildDatabase := db.GetGuildDatabase(client, guildId)
 		stickerCollection := guildDatabase.Collection("sticker")
-		stickerCommands := sticker.NewAllStickerCommands(stickerCollection)
-		masterCmdHandler, cmdDefinitionList := cmd.PrepareCommands(guildId, stickerCommands...)
+		commands := sticker.NewAllStickerCommands(stickerCollection)
+		pingCommand := server.NewPingCommand(client)
+		commands = append(commands, pingCommand)
+
+		masterCmdHandler, cmdDefinitionList := cmd.PrepareCommands(guildId, commands...)
 
 		createdCommands, err := session.ApplicationCommandBulkOverwrite(userId, guildId, cmdDefinitionList)
 		session.AddHandler(masterCmdHandler)

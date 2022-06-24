@@ -46,7 +46,7 @@ func CreateSticker(collection *mongo.Collection, name string, url string) (strin
 	defer cancel()
 	result, err := collection.InsertOne(ctx, Sticker{Name: name, Url: url})
 	stickerId := result.InsertedID.(primitive.ObjectID)
-	return stickerId.String(), err
+	return stickerId.Hex(), err
 }
 
 func DeleteSticker(collection *mongo.Collection, stickerId string) (*Sticker, error) {

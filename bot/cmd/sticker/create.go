@@ -9,13 +9,13 @@ import (
 )
 
 type CreateStickerSlashCommand struct {
-	Collection *mongo.Collection
+	collection *mongo.Collection
 }
 
-const CreateStickerSlashCommandName = "add-sticker"
+const CreateStickerCommandName = "add-sticker"
 
-var CreateStickerSlashDefinition = &discordgo.ApplicationCommand{
-	Name:        CreateStickerSlashCommandName,
+var CreateStickerCommandDefinition = &discordgo.ApplicationCommand{
+	Name:        CreateStickerCommandName,
 	Description: "add a sticker",
 	Type:        discordgo.ChatApplicationCommand,
 	Options: []*discordgo.ApplicationCommandOption{
@@ -37,15 +37,15 @@ var CreateStickerSlashDefinition = &discordgo.ApplicationCommand{
 }
 
 func NewCreateStickerSlashCommand(collection *mongo.Collection) cmd.SlashCommand {
-	return &CreateStickerSlashCommand{Collection: collection}
+	return &CreateStickerSlashCommand{collection: collection}
 }
 
 func (c *CreateStickerSlashCommand) Name() string {
-	return CreateStickerSlashCommandName
+	return CreateStickerCommandName
 }
 
 func (c *CreateStickerSlashCommand) Definition() *discordgo.ApplicationCommand {
-	return CreateStickerSlashDefinition
+	return CreateStickerCommandDefinition
 }
 
 func (c *CreateStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -54,15 +54,15 @@ func (c *CreateStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.I
 	stickerName := data.Options[0].StringValue()
 	stickerUrl := data.Options[1].StringValue()
 
-	stickerId, err := db.CreateSticker(c.Collection, stickerName, stickerUrl)
+	stickerId, err := db.CreateSticker(c.collection, stickerName, stickerUrl)
 
 	var content string
 
 	if err != nil {
 		content = "server error, cannot add sticker"
-		log.Println("cannot add sticker,", err)
+		log.Println("cannot add sticker with reason:", err)
 	} else {
-		log.Printf("user %s created sticker %s", i.Member.User.ID, stickerId)
+		log.Printf("user %s created sticker %q with ID %s\n", i.Member.User.ID, stickerName, stickerId)
 		content = "sticker `" + stickerName + "` added"
 	}
 

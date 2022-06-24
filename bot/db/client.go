@@ -11,8 +11,9 @@ import (
 )
 
 func NewMongoClient() (*mongo.Client, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	start := time.Now()
 
 	mongoUri := os.Getenv("MONGO_URI")
 
@@ -28,7 +29,7 @@ func NewMongoClient() (*mongo.Client, error) {
 		return nil, err
 	}
 
-	log.Println("new mongo client created")
+	log.Println("new mongo client created, latency", time.Since(start).Milliseconds(), "ms")
 
 	return client, nil
 }

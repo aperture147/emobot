@@ -9,7 +9,7 @@ import (
 )
 
 type DeleteStickerSlashCommand struct {
-	Collection *mongo.Collection
+	collection *mongo.Collection
 }
 
 const DeleteStickerCommandName = "delete-sticker"
@@ -30,7 +30,7 @@ var DeleteStickerCommandDefinition = &discordgo.ApplicationCommand{
 }
 
 func NewDeleteStickerSlashCommand(collection *mongo.Collection) cmd.SlashCommand {
-	return &DeleteStickerSlashCommand{Collection: collection}
+	return &DeleteStickerSlashCommand{collection: collection}
 }
 
 func (c *DeleteStickerSlashCommand) Name() string {
@@ -47,12 +47,12 @@ func (c *DeleteStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.I
 		data := i.ApplicationCommandData()
 		stickerId := data.Options[0].StringValue()
 
-		sticker, err := db.DeleteSticker(c.Collection, stickerId)
+		sticker, err := db.DeleteSticker(c.collection, stickerId)
 
 		content := "sticker `" + sticker.Name + "` deleted"
 		if err != nil {
 			content = "server error, cannot delete sticker"
-			log.Println("cannot delete sticker with reason: ", err)
+			log.Println("cannot delete sticker with reason:", err)
 		}
 		log.Printf("user %s deleted sticker %s", i.Member.User.ID, stickerId)
 
@@ -75,10 +75,10 @@ func (c *DeleteStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.I
 		var err error
 
 		if findAttr != "" {
-			stickerChoices, err = GetStickerAutocompleteChoice(c.Collection, findAttr)
+			stickerChoices, err = GetStickerAutocompleteChoice(c.collection, findAttr)
 
 			if err != nil {
-				log.Println("autocomplete error,", err)
+				log.Println("autocomplete error with reason:", err)
 			}
 		}
 
@@ -90,7 +90,7 @@ func (c *DeleteStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.I
 		})
 
 		if err != nil {
-			log.Println("cannot send autocomplete command with reason: ", err)
+			log.Println("cannot send autocomplete command with reason:", err)
 		}
 	}
 }

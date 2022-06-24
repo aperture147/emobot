@@ -4,6 +4,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
+	"time"
 )
 
 func NewDiscordSession() (*discordgo.Session, error) {
@@ -14,7 +15,10 @@ func NewDiscordSession() (*discordgo.Session, error) {
 		return nil, err
 	}
 
-	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) { log.Println("new discord session created") })
+	start := time.Now()
+	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+		log.Println("new discord session created, latency", time.Since(start).Milliseconds(), "ms")
+	})
 
 	err = s.Open()
 	if err != nil {
