@@ -1,22 +1,22 @@
 package sticker
 
 import (
-	"emobot/bot/cmd"
+	"emobot/bot/application"
 	"emobot/bot/db"
 	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 )
 
-type GetStickerSlashCommand struct {
+type DeleteStickerCommand struct {
 	collection *mongo.Collection
 }
 
-const GetStickerCommandName = "sticker"
+const DeleteStickerCommandName = "delete-sticker"
 
-var GetStickerCommandDefinition = &discordgo.ApplicationCommand{
-	Name:        GetStickerCommandName,
-	Description: "get a sticker",
+var DeleteStickerCommandDefinition = &discordgo.ApplicationCommand{
+	Name:        DeleteStickerCommandName,
+	Description: "delete sticker",
 	Type:        discordgo.ChatApplicationCommand,
 	Options: []*discordgo.ApplicationCommandOption{
 		{
@@ -29,37 +29,32 @@ var GetStickerCommandDefinition = &discordgo.ApplicationCommand{
 	},
 }
 
-func NewGetStickerSlashCommand(collection *mongo.Collection) cmd.SlashCommand {
-	return &GetStickerSlashCommand{collection: collection}
+func NewDeleteStickerSlashCommand(collection *mongo.Collection) application.Command {
+	return &DeleteStickerCommand{collection: collection}
 }
 
-func (c *GetStickerSlashCommand) Name() string {
-	return GetStickerCommandName
+func (c *DeleteStickerCommand) Name() string {
+	return DeleteStickerCommandName
 }
 
-func (c *GetStickerSlashCommand) Definition() *discordgo.ApplicationCommand {
-	return GetStickerCommandDefinition
+func (c *DeleteStickerCommand) Definition() *discordgo.ApplicationCommand {
+	return DeleteStickerCommandDefinition
 }
 
-func (c *GetStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (c *DeleteStickerCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		data := i.ApplicationCommandData()
 		stickerId := data.Options[0].StringValue()
-		sticker, err := db.GetSticker(c.collection, stickerId)
 
-		var content string
+		sticker, err := db.DeleteSticker(c.collection, stickerId)
 
+		content := "sticker `" + sticker.Name + "` deleted"
 		if err != nil {
-			log.Println("cannot get sticker with reason:", err)
-			content = "server error, cannot get sticker"
-		} else if sticker == nil {
-			log.Printf("user %s cannot get sticker %s\n", i.Member.User.ID, stickerId)
-			content = "no sticker found"
-		} else {
-			log.Printf("user %s used sticker %s\n", i.Member.User.ID, stickerId)
-			content = sticker.Url
+			content = "server error, cannot delete sticker"
+			log.Println("cannot delete sticker with reason:", err)
 		}
+		log.Printf("user %s deleted sticker %s", i.Member.User.ID, stickerId)
 
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -67,8 +62,9 @@ func (c *GetStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.Inte
 				Content: content,
 			},
 		})
+
 		if err != nil {
-			log.Println("cannot send sticker with reason:", err)
+			log.Println("cannot send delete message with reason:", err)
 		}
 
 	case discordgo.InteractionApplicationCommandAutocomplete:

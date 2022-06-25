@@ -35,7 +35,7 @@ func GetGuildIdList(collection *mongo.Collection) ([]string, error) {
 	return guildIdList, nil
 }
 
-func GetGuildDatabase(client *mongo.Client, guildId string) *mongo.Database {
+func GetGuildDatabase(guildId string, client *mongo.Client) *mongo.Database {
 	guildDbName := "guild-" + guildId
 	return client.Database(guildDbName)
 }

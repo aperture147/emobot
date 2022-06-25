@@ -2,7 +2,9 @@ package db
 
 import (
 	"context"
+	"errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
 
@@ -16,4 +18,16 @@ func getObjectId(id string) *primitive.ObjectID {
 		return nil
 	}
 	return &objectId
+}
+
+func isDuplicated(err error) bool {
+	var e mongo.WriteException
+	if errors.As(err, &e) {
+		for _, we := range e.WriteErrors {
+			if we.Code == 11000 {
+				return true
+			}
+		}
+	}
+	return false
 }

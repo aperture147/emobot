@@ -1,27 +1,27 @@
-package word
+package sticker
 
 import (
-	"emobot/bot/cmd"
+	"emobot/bot/application"
 	"emobot/bot/db"
 	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 )
 
-type QuoteSlashCommand struct {
+type GetStickerCommand struct {
 	collection *mongo.Collection
 }
 
-const QuoteCommandName = "quote"
+const GetStickerCommandName = "sticker"
 
-var QuoteCommandDefinition = &discordgo.ApplicationCommand{
-	Name:        QuoteCommandName,
-	Description: "get quote",
+var GetStickerCommandDefinition = &discordgo.ApplicationCommand{
+	Name:        GetStickerCommandName,
+	Description: "get a sticker",
 	Type:        discordgo.ChatApplicationCommand,
 	Options: []*discordgo.ApplicationCommandOption{
 		{
-			Name:         "title",
-			Description:  "title of the quote",
+			Name:         "name",
+			Description:  "name of the sticker",
 			Type:         discordgo.ApplicationCommandOptionString,
 			Required:     true,
 			Autocomplete: true,
@@ -29,36 +29,36 @@ var QuoteCommandDefinition = &discordgo.ApplicationCommand{
 	},
 }
 
-func NewQuoteCommand(collection *mongo.Collection) cmd.SlashCommand {
-	return &QuoteSlashCommand{collection}
+func NewGetStickerSlashCommand(collection *mongo.Collection) application.Command {
+	return &GetStickerCommand{collection: collection}
 }
 
-func (c *QuoteSlashCommand) Name() string {
-	return QuoteCommandName
+func (c *GetStickerCommand) Name() string {
+	return GetStickerCommandName
 }
 
-func (c *QuoteSlashCommand) Definition() *discordgo.ApplicationCommand {
-	return QuoteCommandDefinition
+func (c *GetStickerCommand) Definition() *discordgo.ApplicationCommand {
+	return GetStickerCommandDefinition
 }
 
-func (c *QuoteSlashCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (c *GetStickerCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		data := i.ApplicationCommandData()
 		stickerId := data.Options[0].StringValue()
-		sticker, err := db.GetQuote(c.collection, stickerId)
+		sticker, err := db.GetSticker(c.collection, stickerId)
 
 		var content string
 
 		if err != nil {
-			log.Println("cannot get quote with reason:", err)
-			content = "server error, cannot get quote"
+			log.Println("cannot get sticker with reason:", err)
+			content = "server error, cannot get sticker"
 		} else if sticker == nil {
-			log.Printf("user %s cannot get quote %s\n", i.Member.User.ID, stickerId)
-			content = "no quote found"
+			log.Printf("user %s cannot get sticker %s\n", i.Member.User.ID, stickerId)
+			content = "no sticker found"
 		} else {
-			log.Printf("user %s used quote %s\n", i.Member.User.ID, stickerId)
-			content = sticker.Content
+			log.Printf("user %s used sticker %s\n", i.Member.User.ID, stickerId)
+			content = sticker.Url
 		}
 
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -68,18 +68,18 @@ func (c *QuoteSlashCommand) Handler(s *discordgo.Session, i *discordgo.Interacti
 			},
 		})
 		if err != nil {
-			log.Println("cannot send quote with reason:", err)
+			log.Println("cannot send sticker with reason:", err)
 		}
 
 	case discordgo.InteractionApplicationCommandAutocomplete:
 		data := i.ApplicationCommandData()
 		findAttr := data.Options[0].StringValue()
 
-		var quoteChoices []*discordgo.ApplicationCommandOptionChoice
+		var stickerChoices []*discordgo.ApplicationCommandOptionChoice
 		var err error
 
 		if findAttr != "" {
-			quoteChoices, err = GetQuoteAutocompleteChoice(c.collection, findAttr)
+			stickerChoices, err = GetStickerAutocompleteChoice(c.collection, findAttr)
 
 			if err != nil {
 				log.Println("autocomplete error with reason:", err)
@@ -89,7 +89,7 @@ func (c *QuoteSlashCommand) Handler(s *discordgo.Session, i *discordgo.Interacti
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionApplicationCommandAutocompleteResult,
 			Data: &discordgo.InteractionResponseData{
-				Choices: quoteChoices,
+				Choices: stickerChoices,
 			},
 		})
 

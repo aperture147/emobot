@@ -15,7 +15,6 @@ WORKDIR /run
 COPY --from=build-env /build/bot/bot .
 
 ENV BOT_TOKEN=placeholder \
-    GUILD_ID=placeholder \
     MONGO_URI=placeholder
 
 ENTRYPOINT /run/bot

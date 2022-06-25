@@ -1,18 +1,14 @@
 package main
 
 import (
-	"context"
-	"emobot/bot/cmd"
-	"emobot/bot/cmd/server"
-	"emobot/bot/cmd/sticker"
-	"emobot/bot/cmd/word"
+	"emobot/bot/application"
 	"emobot/bot/db"
 	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 	"os"
 	"os/signal"
-	"time"
+	"syscall"
 )
 
 var session *discordgo.Session
@@ -30,28 +26,15 @@ func init() {
 // init discord session
 func init() {
 	var err error
-	session, err = cmd.NewDiscordSession()
+	session, err = application.NewDiscordSession()
 	if err != nil {
 		log.Fatalln("cannot create discord token, ", err)
 	}
 }
 
 func main() {
-	defer func() {
-		err := session.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}()
-
-	defer func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		err := client.Disconnect(ctx)
-		if err != nil {
-			log.Println(err)
-		}
-	}()
+	defer application.CloseDiscordSession(session)
+	defer db.CloseMongoClient(client)
 
 	guildCollection := client.Database("global").Collection("guild")
 	guildIdList, err := db.GetGuildIdList(guildCollection)
@@ -59,32 +42,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	userId := session.State.User.ID
-
-	for _, guildId := range guildIdList {
-		guildDatabase := db.GetGuildDatabase(client, guildId)
-		var commands []cmd.SlashCommand
-		commands = append(commands, server.NewPingCommand(client))
-		commands = append(commands, sticker.NewAllStickerCommands(guildDatabase.Collection("sticker"))...)
-		commands = append(commands, word.NewQuoteCommand(guildDatabase.Collection("quote")))
-
-		masterCmdHandler, cmdDefinitionList := cmd.PrepareCommands(guildId, commands...)
-
-		createdCommands, err := session.ApplicationCommandBulkOverwrite(userId, guildId, cmdDefinitionList)
-		session.AddHandler(masterCmdHandler)
-		if err != nil {
-			log.Println("failed to add command to guild "+guildId+" with reason: ", err)
-		}
-		log.Println("slash command added for guild " + guildId)
-		defer cmd.DeleteCreatedCommand(session, guildId, createdCommands)
-	}
-
-	if err != nil {
-		log.Fatalln(err)
-	}
+	guildCreatedCommands := AddGuildCommands(guildIdList)
 
 	stop := make(chan os.Signal)
-	signal.Notify(stop, os.Interrupt)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
 	log.Println("gracefully shutting down")
+
+	DeleteGuildCommands(guildCreatedCommands)
 }

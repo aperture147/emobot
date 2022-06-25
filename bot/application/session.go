@@ -1,4 +1,4 @@
-package cmd
+package application
 
 import (
 	"github.com/bwmarrin/discordgo"
@@ -26,4 +26,11 @@ func NewDiscordSession() (*discordgo.Session, error) {
 	}
 
 	return s, nil
+}
+
+func CloseDiscordSession(session *discordgo.Session) {
+	err := session.Close()
+	if err != nil {
+		log.Println(err)
+	}
 }

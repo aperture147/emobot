@@ -1,17 +1,21 @@
-package cmd
+package application
 
 import (
 	"github.com/bwmarrin/discordgo"
 	"log"
 )
 
-type SlashCommand interface {
+type CommandCollection interface {
+	GetAllCommands() []Command
+}
+
+type Command interface {
 	Name() string
 	Definition() *discordgo.ApplicationCommand
 	Handler(s *discordgo.Session, i *discordgo.InteractionCreate)
 }
 
-func PrepareCommands(guildId string, cmdList ...SlashCommand) (func(s *discordgo.Session, i *discordgo.InteractionCreate), []*discordgo.ApplicationCommand) {
+func PrepareHandler(guildId string, cmdList ...Command) (func(s *discordgo.Session, i *discordgo.InteractionCreate), []*discordgo.ApplicationCommand) {
 	cmdHandlerMap := make(map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate), len(cmdList))
 	cmdDefinitionList := make([]*discordgo.ApplicationCommand, len(cmdList))
 
@@ -24,15 +28,18 @@ func PrepareCommands(guildId string, cmdList ...SlashCommand) (func(s *discordgo
 		if guildId != i.GuildID {
 			return
 		}
+		applicationCommandName := i.ApplicationCommandData().Name
 		if handler, ok := cmdHandlerMap[i.ApplicationCommandData().Name]; ok {
 			handler(s, i)
+		} else {
+			log.Printf("received unknown application command %q\n", applicationCommandName)
 		}
 	}
 
 	return masterCmdHandler, cmdDefinitionList
 }
 
-func DeleteCreatedCommand(s *discordgo.Session, guildId string, createdCommands []*discordgo.ApplicationCommand) {
+func DeleteGuildCreatedCommands(s *discordgo.Session, guildId string, createdCommands []*discordgo.ApplicationCommand) {
 	var err error
 	userId := s.State.User.ID
 	for _, c := range createdCommands {

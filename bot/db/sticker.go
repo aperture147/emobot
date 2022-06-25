@@ -14,45 +14,34 @@ type Sticker struct {
 }
 
 func GetSticker(collection *mongo.Collection, stickerId string) (*Sticker, error) {
-	ctx, cancel := getContext()
-	defer cancel()
-	objectId := getObjectId(stickerId)
-	if objectId == nil {
-		return nil, nil
-	}
-
-	findOpt := options.Find()
-	findOpt.SetProjection(bson.M{
+	opt := options.FindOne()
+	opt.SetProjection(bson.M{
 		"name": false,
 	})
-	result := collection.FindOne(ctx, bson.M{"_id": objectId})
+
 	var sticker Sticker
-	err := result.Decode(&sticker)
+	exists, err := GetOne(collection, stickerId, &sticker, opt)
+	if !exists {
+		return nil, nil
+	}
 	return &sticker, err
 }
 
 func CreateSticker(collection *mongo.Collection, name string, url string) (string, error) {
-	ctx, cancel := getContext()
-	defer cancel()
-	result, err := collection.InsertOne(ctx, Sticker{Name: name, Url: url})
-	stickerId := result.InsertedID.(primitive.ObjectID)
-	return stickerId.Hex(), err
+	return CreateOne(collection, Sticker{Name: name, Url: url})
 }
 
 func DeleteSticker(collection *mongo.Collection, stickerId string) (*Sticker, error) {
-	ctx, cancel := getContext()
-	defer cancel()
-	objectId := getObjectId(stickerId)
-	if objectId == nil {
+	var sticker Sticker
+	opt := options.FindOneAndDelete()
+	opt.SetProjection(bson.M{
+		"url": false,
+	})
+
+	exists, err := DeleteOne(collection, stickerId, &sticker, opt)
+	if !exists {
 		return nil, nil
 	}
-
-	var sticker Sticker
-
-	deleteResult := collection.FindOneAndDelete(ctx, bson.M{
-		"_id": objectId,
-	})
-	err := deleteResult.Decode(&sticker)
 	return &sticker, err
 }
 

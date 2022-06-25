@@ -33,3 +33,12 @@ func NewMongoClient() (*mongo.Client, error) {
 
 	return client, nil
 }
+
+func CloseMongoClient(client *mongo.Client) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	err := client.Disconnect(ctx)
+	if err != nil {
+		log.Println(err)
+	}
+}

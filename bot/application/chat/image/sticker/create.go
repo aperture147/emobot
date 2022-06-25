@@ -1,7 +1,7 @@
 package sticker
 
 import (
-	"emobot/bot/cmd"
+	"emobot/bot/application"
 	"emobot/bot/db"
 	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -36,7 +36,7 @@ var CreateStickerCommandDefinition = &discordgo.ApplicationCommand{
 	},
 }
 
-func NewCreateStickerSlashCommand(collection *mongo.Collection) cmd.SlashCommand {
+func NewCreateStickerSlashCommand(collection *mongo.Collection) application.Command {
 	return &CreateStickerSlashCommand{collection: collection}
 }
 
@@ -61,6 +61,9 @@ func (c *CreateStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.I
 	if err != nil {
 		content = "server error, cannot add sticker"
 		log.Println("cannot add sticker with reason:", err)
+	} else if stickerId == "" {
+		log.Printf("user %s failed to create a duplicated sticker %q\n", i.Member.User.ID, stickerName)
+		content = "sticker `" + stickerName + "` already exists"
 	} else {
 		log.Printf("user %s created sticker %q with ID %s\n", i.Member.User.ID, stickerName, stickerId)
 		content = "sticker `" + stickerName + "` added"

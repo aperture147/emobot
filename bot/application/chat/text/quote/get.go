@@ -1,27 +1,27 @@
-package sticker
+package quote
 
 import (
-	"emobot/bot/cmd"
+	"emobot/bot/application"
 	"emobot/bot/db"
 	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
 )
 
-type DeleteStickerSlashCommand struct {
+type GetQuoteCommand struct {
 	collection *mongo.Collection
 }
 
-const DeleteStickerCommandName = "delete-sticker"
+const GetQuoteCommandName = "quote"
 
-var DeleteStickerCommandDefinition = &discordgo.ApplicationCommand{
-	Name:        DeleteStickerCommandName,
-	Description: "delete sticker",
+var GetQuoteCommandDefinition = &discordgo.ApplicationCommand{
+	Name:        GetQuoteCommandName,
+	Description: "get quote",
 	Type:        discordgo.ChatApplicationCommand,
 	Options: []*discordgo.ApplicationCommandOption{
 		{
-			Name:         "name",
-			Description:  "name of the sticker",
+			Name:         "title",
+			Description:  "title of the quote",
 			Type:         discordgo.ApplicationCommandOptionString,
 			Required:     true,
 			Autocomplete: true,
@@ -29,32 +29,37 @@ var DeleteStickerCommandDefinition = &discordgo.ApplicationCommand{
 	},
 }
 
-func NewDeleteStickerSlashCommand(collection *mongo.Collection) cmd.SlashCommand {
-	return &DeleteStickerSlashCommand{collection: collection}
+func NewGetQuoteCommand(collection *mongo.Collection) application.Command {
+	return &GetQuoteCommand{collection}
 }
 
-func (c *DeleteStickerSlashCommand) Name() string {
-	return DeleteStickerCommandName
+func (c *GetQuoteCommand) Name() string {
+	return GetQuoteCommandName
 }
 
-func (c *DeleteStickerSlashCommand) Definition() *discordgo.ApplicationCommand {
-	return DeleteStickerCommandDefinition
+func (c *GetQuoteCommand) Definition() *discordgo.ApplicationCommand {
+	return GetQuoteCommandDefinition
 }
 
-func (c *DeleteStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (c *GetQuoteCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		data := i.ApplicationCommandData()
 		stickerId := data.Options[0].StringValue()
+		sticker, err := db.GetQuote(c.collection, stickerId)
 
-		sticker, err := db.DeleteSticker(c.collection, stickerId)
+		var content string
 
-		content := "sticker `" + sticker.Name + "` deleted"
 		if err != nil {
-			content = "server error, cannot delete sticker"
-			log.Println("cannot delete sticker with reason:", err)
+			log.Println("cannot get quote with reason:", err)
+			content = "server error, cannot get quote"
+		} else if sticker == nil {
+			log.Printf("user %s cannot get quote %s\n", i.Member.User.ID, stickerId)
+			content = "no quote found"
+		} else {
+			log.Printf("user %s used quote %s\n", i.Member.User.ID, stickerId)
+			content = sticker.Content
 		}
-		log.Printf("user %s deleted sticker %s", i.Member.User.ID, stickerId)
 
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -62,20 +67,19 @@ func (c *DeleteStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.I
 				Content: content,
 			},
 		})
-
 		if err != nil {
-			log.Println("cannot send delete message with reason:", err)
+			log.Println("cannot send quote with reason:", err)
 		}
 
 	case discordgo.InteractionApplicationCommandAutocomplete:
 		data := i.ApplicationCommandData()
 		findAttr := data.Options[0].StringValue()
 
-		var stickerChoices []*discordgo.ApplicationCommandOptionChoice
+		var quoteChoices []*discordgo.ApplicationCommandOptionChoice
 		var err error
 
 		if findAttr != "" {
-			stickerChoices, err = GetStickerAutocompleteChoice(c.collection, findAttr)
+			quoteChoices, err = GetQuoteAutocompleteChoice(c.collection, findAttr)
 
 			if err != nil {
 				log.Println("autocomplete error with reason:", err)
@@ -85,7 +89,7 @@ func (c *DeleteStickerSlashCommand) Handler(s *discordgo.Session, i *discordgo.I
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionApplicationCommandAutocompleteResult,
 			Data: &discordgo.InteractionResponseData{
-				Choices: stickerChoices,
+				Choices: quoteChoices,
 			},
 		})
 
