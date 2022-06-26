@@ -45,20 +45,20 @@ func (c *GetQuoteCommand) Handler(s *discordgo.Session, i *discordgo.Interaction
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		data := i.ApplicationCommandData()
-		stickerId := data.Options[0].StringValue()
-		sticker, err := db.GetQuote(c.collection, stickerId)
+		quoteId := data.Options[0].StringValue()
+		quote, err := db.GetQuote(c.collection, quoteId)
 
 		var content string
 
 		if err != nil {
 			log.Println("cannot get quote with reason:", err)
 			content = "server error, cannot get quote"
-		} else if sticker == nil {
-			log.Printf("user %s cannot get quote %s\n", i.Member.User.ID, stickerId)
+		} else if quote == nil {
+			log.Printf("user %s cannot get quote %s\n", i.Member.User.ID, quoteId)
 			content = "no quote found"
 		} else {
-			log.Printf("user %s used quote %s\n", i.Member.User.ID, stickerId)
-			content = sticker.Content
+			log.Printf("user %s used quote %s\n", i.Member.User.ID, quoteId)
+			content = quote.Content
 		}
 
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
