@@ -8,15 +8,15 @@ import (
 	"log"
 )
 
-type GetQuoteCommand struct {
+type deleteQuoteCommand struct {
 	collection *mongo.Collection
 }
 
-const getQuoteCommandName = "quote"
+const deleteQuoteCommandName = "delete-quote"
 
-var getQuoteCommandDefinition = &discordgo.ApplicationCommand{
-	Name:        getQuoteCommandName,
-	Description: "get quote",
+var deleteQuoteCommandDefinition = &discordgo.ApplicationCommand{
+	Name:        deleteQuoteCommandName,
+	Description: "delete quote",
 	Type:        discordgo.ChatApplicationCommand,
 	Options: []*discordgo.ApplicationCommandOption{
 		{
@@ -29,36 +29,34 @@ var getQuoteCommandDefinition = &discordgo.ApplicationCommand{
 	},
 }
 
-func NewGetQuoteCommand(collection *mongo.Collection) application.Command {
-	return &GetQuoteCommand{collection}
+func NewDeleteGetQuoteCommand(collection *mongo.Collection) application.Command {
+	return &deleteQuoteCommand{collection}
 }
 
-func (c *GetQuoteCommand) Name() string {
-	return getQuoteCommandName
+func (c *deleteQuoteCommand) Name() string {
+	return deleteQuoteCommandName
 }
 
-func (c *GetQuoteCommand) Definition() *discordgo.ApplicationCommand {
-	return getQuoteCommandDefinition
+func (c *deleteQuoteCommand) Definition() *discordgo.ApplicationCommand {
+	return deleteQuoteCommandDefinition
 }
 
-func (c *GetQuoteCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (c *deleteQuoteCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		data := i.ApplicationCommandData()
-		stickerId := data.Options[0].StringValue()
-		sticker, err := db.GetQuote(c.collection, stickerId)
+		quoteId := data.Options[0].StringValue()
+
+		quote, err := db.DeleteQuote(c.collection, quoteId)
 
 		var content string
 
 		if err != nil {
-			log.Println("cannot get quote with reason:", err)
-			content = "server error, cannot get quote"
-		} else if sticker == nil {
-			log.Printf("user %s cannot get quote %s\n", i.Member.User.ID, stickerId)
-			content = "no quote found"
+			content = "server error, cannot delete quote"
+			log.Println("cannot delete quote with reason:", err)
 		} else {
-			log.Printf("user %s used quote %s\n", i.Member.User.ID, stickerId)
-			content = sticker.Content
+			content = "quote `" + quote.Title + "` deleted"
+			log.Printf("user %s deleted quote %s", i.Member.User.ID, quoteId)
 		}
 
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -67,8 +65,9 @@ func (c *GetQuoteCommand) Handler(s *discordgo.Session, i *discordgo.Interaction
 				Content: content,
 			},
 		})
+
 		if err != nil {
-			log.Println("cannot send quote with reason:", err)
+			log.Println("cannot send delete message with reason:", err)
 		}
 
 	case discordgo.InteractionApplicationCommandAutocomplete:

@@ -8,14 +8,14 @@ import (
 	"log"
 )
 
-type DeleteStickerCommand struct {
+type deleteStickerCommand struct {
 	collection *mongo.Collection
 }
 
-const DeleteStickerCommandName = "delete-sticker"
+const deleteStickerCommandName = "delete-sticker"
 
-var DeleteStickerCommandDefinition = &discordgo.ApplicationCommand{
-	Name:        DeleteStickerCommandName,
+var deleteStickerCommandDefinition = &discordgo.ApplicationCommand{
+	Name:        deleteStickerCommandName,
 	Description: "delete sticker",
 	Type:        discordgo.ChatApplicationCommand,
 	Options: []*discordgo.ApplicationCommandOption{
@@ -29,19 +29,19 @@ var DeleteStickerCommandDefinition = &discordgo.ApplicationCommand{
 	},
 }
 
-func NewDeleteStickerSlashCommand(collection *mongo.Collection) application.Command {
-	return &DeleteStickerCommand{collection: collection}
+func NewDeleteStickerCommand(collection *mongo.Collection) application.Command {
+	return &deleteStickerCommand{collection: collection}
 }
 
-func (c *DeleteStickerCommand) Name() string {
-	return DeleteStickerCommandName
+func (c *deleteStickerCommand) Name() string {
+	return deleteStickerCommandName
 }
 
-func (c *DeleteStickerCommand) Definition() *discordgo.ApplicationCommand {
-	return DeleteStickerCommandDefinition
+func (c *deleteStickerCommand) Definition() *discordgo.ApplicationCommand {
+	return deleteStickerCommandDefinition
 }
 
-func (c *DeleteStickerCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (c *deleteStickerCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		data := i.ApplicationCommandData()
@@ -49,12 +49,15 @@ func (c *DeleteStickerCommand) Handler(s *discordgo.Session, i *discordgo.Intera
 
 		sticker, err := db.DeleteSticker(c.collection, stickerId)
 
-		content := "sticker `" + sticker.Name + "` deleted"
+		var content string
+
 		if err != nil {
 			content = "server error, cannot delete sticker"
 			log.Println("cannot delete sticker with reason:", err)
+		} else {
+			content = "sticker `" + sticker.Name + "` deleted"
+			log.Printf("user %s deleted sticker %s", i.Member.User.ID, stickerId)
 		}
-		log.Printf("user %s deleted sticker %s", i.Member.User.ID, stickerId)
 
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,

@@ -7,19 +7,20 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const DatabaseCollectionName = "quote"
+const databaseCollectionName = "quote"
 
 type CommandCollection struct {
 	collection *mongo.Collection
 }
 
-func NewCommandCollection(database *mongo.Database) CommandCollection {
-	return CommandCollection{collection: database.Collection(DatabaseCollectionName)}
+func NewCommandCollection(database *mongo.Database) application.CommandCollection {
+	return CommandCollection{collection: database.Collection(databaseCollectionName)}
 }
 
 func (c CommandCollection) GetAllCommands() []application.Command {
 	getCommand := NewGetQuoteCommand(c.collection)
-	return []application.Command{getCommand}
+	deleteCommand := NewDeleteGetQuoteCommand(c.collection)
+	return []application.Command{getCommand, deleteCommand}
 }
 
 func GetQuoteAutocompleteChoice(collection *mongo.Collection, findAttr string) ([]*discordgo.ApplicationCommandOptionChoice, error) {

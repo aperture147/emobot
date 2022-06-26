@@ -2,7 +2,7 @@ package image
 
 import (
 	"emobot/bot/application"
-	"emobot/bot/application/chat/image/sticker"
+	"emobot/bot/application/message/image/sticker"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 

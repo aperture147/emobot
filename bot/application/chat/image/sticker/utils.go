@@ -7,21 +7,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const DatabaseCollectionName = "sticker"
+const databaseCollectionName = "sticker"
 
-type CommandCollection struct {
+type commandCollection struct {
 	collection *mongo.Collection
 }
 
-func NewCommandCollection(database *mongo.Database) CommandCollection {
-	return CommandCollection{collection: database.Collection(DatabaseCollectionName)}
+func NewCommandCollection(database *mongo.Database) application.CommandCollection {
+	return commandCollection{collection: database.Collection(databaseCollectionName)}
 }
 
-func (c CommandCollection) GetAllCommands() []application.Command {
-	getCommand := NewGetStickerSlashCommand(c.collection)
-	createCommand := NewCreateStickerSlashCommand(c.collection)
-	deleteStickerCommand := NewDeleteStickerSlashCommand(c.collection)
-	return []application.Command{getCommand, createCommand, deleteStickerCommand}
+func (c commandCollection) GetAllCommands() []application.Command {
+	getCommand := NewGetStickerCommand(c.collection)
+	createCommand := NewCreateStickerCommand(c.collection)
+	deleteCommand := NewDeleteStickerCommand(c.collection)
+	return []application.Command{getCommand, createCommand, deleteCommand}
 }
 
 func GetStickerAutocompleteChoice(collection *mongo.Collection, findAttr string) ([]*discordgo.ApplicationCommandOptionChoice, error) {

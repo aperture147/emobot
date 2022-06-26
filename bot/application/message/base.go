@@ -1,10 +1,9 @@
-package chat
+package message
 
 import (
 	"emobot/bot/application"
-	"emobot/bot/application/chat/image"
-	"emobot/bot/application/chat/server"
-	"emobot/bot/application/chat/text"
+	"emobot/bot/application/message/image"
+	"emobot/bot/application/message/text"
 	"emobot/bot/db"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -24,11 +23,9 @@ func NewCommandCollection(guildId string, client *mongo.Client) application.Comm
 func (c commandCollection) GetAllCommands() (commands []application.Command) {
 	imageCollection := image.NewCommandCollection(c.database)
 	textCollection := text.NewCommandCollection(c.database)
-	serverCollection := server.NewCommandCollection(c.client)
 
 	commands = append(commands, imageCollection.GetAllCommands()...)
 	commands = append(commands, textCollection.GetAllCommands()...)
-	commands = append(commands, serverCollection.GetAllCommands()...)
 
 	return commands
 }

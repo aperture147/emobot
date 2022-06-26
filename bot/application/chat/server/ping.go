@@ -11,28 +11,28 @@ import (
 	"time"
 )
 
-type PingCommand struct {
+type pingCommand struct {
 	client *mongo.Client
 }
 
-const PingCommandName = "ping"
+const pingCommandName = "ping"
 
-var PingCommandDefinition = &discordgo.ApplicationCommand{
-	Name:        PingCommandName,
-	Description: "send ping signal to database and discord",
+var pingCommandDefinition = &discordgo.ApplicationCommand{
+	Name:        pingCommandName,
+	Description: "send ping signal to database and discord and get the latency between them",
 	Type:        discordgo.ChatApplicationCommand,
 }
 
 func NewPingCommand(client *mongo.Client) application.Command {
-	return &PingCommand{client}
+	return &pingCommand{client}
 }
 
-func (c *PingCommand) Name() string {
-	return PingCommandName
+func (c *pingCommand) Name() string {
+	return pingCommandName
 }
 
-func (c *PingCommand) Definition() *discordgo.ApplicationCommand {
-	return PingCommandDefinition
+func (c *pingCommand) Definition() *discordgo.ApplicationCommand {
+	return pingCommandDefinition
 }
 
 func getDatabaseLatency(client *mongo.Client) (int64, error) {
@@ -52,7 +52,7 @@ const (
 
 const warningIcon = ":warning:"
 
-func (c *PingCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (c *pingCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	databaseLatency, err := getDatabaseLatency(c.client)
 	var databaseLatencyStr string
 	if err != nil {

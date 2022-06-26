@@ -1,8 +1,8 @@
-package image
+package text
 
 import (
 	"emobot/bot/application"
-	"emobot/bot/application/chat/image/sticker"
+	"emobot/bot/application/message/text/quote"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -15,8 +15,8 @@ func NewCommandCollection(database *mongo.Database) application.CommandCollectio
 }
 
 func (c commandCollection) GetAllCommands() (commands []application.Command) {
-	stickerCollection := sticker.NewCommandCollection(c.database)
+	quoteCollection := quote.NewCommandCollection(c.database)
 
-	commands = append(commands, stickerCollection.GetAllCommands()...)
+	commands = append(commands, quoteCollection.GetAllCommands()...)
 	return commands
 }

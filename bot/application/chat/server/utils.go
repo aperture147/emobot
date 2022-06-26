@@ -5,15 +5,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type CommandCollection struct {
+type commandCollection struct {
 	client *mongo.Client
 }
 
-func NewCommandCollection(client *mongo.Client) CommandCollection {
-	return CommandCollection{client: client}
+func NewCommandCollection(client *mongo.Client) application.CommandCollection {
+	return commandCollection{client: client}
 }
 
-func (c CommandCollection) GetAllCommands() (commands []application.Command) {
+func (c commandCollection) GetAllCommands() (commands []application.Command) {
 	pingCommand := NewPingCommand(c.client)
 
 	commands = append(commands, pingCommand)

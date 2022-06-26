@@ -14,17 +14,21 @@ func AddGuildCommands(session *discordgo.Session, client *mongo.Client, guildIdL
 	for _, guildId := range guildIdList {
 		go func(guildId string) {
 			chatCollection := chat.NewCommandCollection(guildId, client)
+			//messageCollection := message.NewCommandCollection(guildId, client)
+
 			var commands []application.Command
 			commands = append(commands, chatCollection.GetAllCommands()...)
+			//commands = append(commands, messageCollection.GetAllCommands()...)
 
 			masterCmdHandler, cmdDefinitionList := application.PrepareHandler(guildId, commands...)
 			createdCommands, err := session.ApplicationCommandBulkOverwrite(session.State.User.ID, guildId, cmdDefinitionList)
 			session.AddHandler(masterCmdHandler)
 
 			if err != nil {
-				log.Println("failed to add command to guild "+guildId+" with reason: ", err)
+				log.Println("failed to add command to guild", guildId, "with reason:", err)
+			} else {
+				log.Println("application command added for guild", guildId)
 			}
-			log.Println("slash command added for guild " + guildId)
 			guildCreatedCommands[guildId] = createdCommands
 		}(guildId)
 	}
@@ -32,7 +36,7 @@ func AddGuildCommands(session *discordgo.Session, client *mongo.Client, guildIdL
 }
 
 func DeleteGuildCommands(session *discordgo.Session, guildCreatedCommands map[string][]*discordgo.ApplicationCommand) {
-	wg, ctx, cancel := WaitGroupTimeOut(30 * time.Second)
+	wg, ctx, cancel := WaitGroupTimeOut(60 * time.Second)
 	defer cancel()
 	for guildId, createdCommands := range guildCreatedCommands {
 		wg.Add(1)

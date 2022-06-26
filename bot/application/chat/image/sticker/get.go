@@ -8,14 +8,14 @@ import (
 	"log"
 )
 
-type GetStickerCommand struct {
+type getStickerCommand struct {
 	collection *mongo.Collection
 }
 
-const GetStickerCommandName = "sticker"
+const getStickerCommandName = "sticker"
 
-var GetStickerCommandDefinition = &discordgo.ApplicationCommand{
-	Name:        GetStickerCommandName,
+var getStickerCommandDefinition = &discordgo.ApplicationCommand{
+	Name:        getStickerCommandName,
 	Description: "get a sticker",
 	Type:        discordgo.ChatApplicationCommand,
 	Options: []*discordgo.ApplicationCommandOption{
@@ -29,19 +29,19 @@ var GetStickerCommandDefinition = &discordgo.ApplicationCommand{
 	},
 }
 
-func NewGetStickerSlashCommand(collection *mongo.Collection) application.Command {
-	return &GetStickerCommand{collection: collection}
+func NewGetStickerCommand(collection *mongo.Collection) application.Command {
+	return &getStickerCommand{collection: collection}
 }
 
-func (c *GetStickerCommand) Name() string {
-	return GetStickerCommandName
+func (c *getStickerCommand) Name() string {
+	return getStickerCommandName
 }
 
-func (c *GetStickerCommand) Definition() *discordgo.ApplicationCommand {
-	return GetStickerCommandDefinition
+func (c *getStickerCommand) Definition() *discordgo.ApplicationCommand {
+	return getStickerCommandDefinition
 }
 
-func (c *GetStickerCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func (c *getStickerCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		data := i.ApplicationCommandData()

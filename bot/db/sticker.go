@@ -13,14 +13,14 @@ type Sticker struct {
 	Url      string `json:"url" bson:"url"`
 }
 
-func GetSticker(collection *mongo.Collection, stickerId string) (*Sticker, error) {
+func GetSticker(collection *mongo.Collection, id string) (*Sticker, error) {
 	opt := options.FindOne()
 	opt.SetProjection(bson.M{
 		"name": false,
 	})
 
 	var sticker Sticker
-	exists, err := GetOne(collection, stickerId, &sticker, opt)
+	exists, err := GetOne(collection, id, &sticker, opt)
 	if !exists {
 		return nil, nil
 	}
@@ -31,14 +31,14 @@ func CreateSticker(collection *mongo.Collection, name string, url string) (strin
 	return CreateOne(collection, Sticker{Name: name, Url: url})
 }
 
-func DeleteSticker(collection *mongo.Collection, stickerId string) (*Sticker, error) {
+func DeleteSticker(collection *mongo.Collection, id string) (*Sticker, error) {
 	var sticker Sticker
 	opt := options.FindOneAndDelete()
 	opt.SetProjection(bson.M{
 		"url": false,
 	})
 
-	exists, err := DeleteOne(collection, stickerId, &sticker, opt)
+	exists, err := DeleteOne(collection, id, &sticker, opt)
 	if !exists {
 		return nil, nil
 	}

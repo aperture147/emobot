@@ -13,10 +13,10 @@ type Quote struct {
 	Content  string `json:"content" bson:"content"`
 }
 
-func GetQuote(collection *mongo.Collection, stickerId string) (*Quote, error) {
+func GetQuote(collection *mongo.Collection, id string) (*Quote, error) {
 	ctx, cancel := getContext()
 	defer cancel()
-	objectId := getObjectId(stickerId)
+	objectId := getObjectId(id)
 
 	if objectId == nil {
 		return nil, nil
@@ -29,6 +29,24 @@ func GetQuote(collection *mongo.Collection, stickerId string) (*Quote, error) {
 	result := collection.FindOne(ctx, bson.M{"_id": objectId})
 	var quote Quote
 	err := result.Decode(&quote)
+	return &quote, err
+}
+
+func CreateQuote(collection *mongo.Collection, title string, content string) (string, error) {
+	return CreateOne(collection, Quote{Title: title, Content: content})
+}
+
+func DeleteQuote(collection *mongo.Collection, id string) (*Quote, error) {
+	var quote Quote
+	opt := options.FindOneAndDelete()
+	opt.SetProjection(bson.M{
+		"content": false,
+	})
+
+	exists, err := DeleteOne(collection, id, &quote, opt)
+	if !exists {
+		return nil, nil
+	}
 	return &quote, err
 }
 
