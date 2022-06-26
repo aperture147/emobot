@@ -1,14 +1,15 @@
-package main
+package utils
 
 import (
 	"emobot/bot/application"
 	"emobot/bot/application/chat"
 	"github.com/bwmarrin/discordgo"
+	"go.mongodb.org/mongo-driver/mongo"
 	"log"
-	"sync"
+	"time"
 )
 
-func AddGuildCommands(guildIdList []string) map[string][]*discordgo.ApplicationCommand {
+func AddGuildCommands(session *discordgo.Session, client *mongo.Client, guildIdList []string) map[string][]*discordgo.ApplicationCommand {
 	guildCreatedCommands := make(map[string][]*discordgo.ApplicationCommand, len(guildIdList))
 	for _, guildId := range guildIdList {
 		go func(guildId string) {
@@ -30,8 +31,9 @@ func AddGuildCommands(guildIdList []string) map[string][]*discordgo.ApplicationC
 	return guildCreatedCommands
 }
 
-func DeleteGuildCommands(guildCreatedCommands map[string][]*discordgo.ApplicationCommand) {
-	var wg sync.WaitGroup
+func DeleteGuildCommands(session *discordgo.Session, guildCreatedCommands map[string][]*discordgo.ApplicationCommand) {
+	wg, ctx, cancel := WaitGroupTimeOut(30 * time.Second)
+	defer cancel()
 	for guildId, createdCommands := range guildCreatedCommands {
 		wg.Add(1)
 		go func(guildId string, createdCommands []*discordgo.ApplicationCommand) {
@@ -40,4 +42,5 @@ func DeleteGuildCommands(guildCreatedCommands map[string][]*discordgo.Applicatio
 		}(guildId, createdCommands)
 	}
 	wg.Wait()
+	<-ctx.Done()
 }

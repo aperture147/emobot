@@ -3,6 +3,7 @@ package main
 import (
 	"emobot/bot/application"
 	"emobot/bot/db"
+	"emobot/utils"
 	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/mongo"
 	"log"
@@ -42,12 +43,12 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	guildCreatedCommands := AddGuildCommands(guildIdList)
+	guildCreatedCommands := utils.AddGuildCommands(session, client, guildIdList)
 
 	stop := make(chan os.Signal)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
 	log.Println("gracefully shutting down")
 
-	DeleteGuildCommands(guildCreatedCommands)
+	utils.DeleteGuildCommands(session, guildCreatedCommands)
 }
