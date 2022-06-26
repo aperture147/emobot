@@ -59,7 +59,7 @@ func DeleteOne(collection *mongo.Collection, stickerId string, container interfa
 	}
 
 	deleteResult := collection.FindOneAndDelete(ctx, bson.M{"_id": objectId}, options...)
-	err := deleteResult.Decode(&container)
+	err := deleteResult.Decode(container)
 	if errors.Is(err, bson.ErrNilRegistry) {
 		return false, nil
 	}
