@@ -29,7 +29,12 @@ func PrepareHandler(guildId string, cmdList ...Command) (func(s *discordgo.Sessi
 			return
 		}
 		applicationCommandName := i.ApplicationCommandData().Name
-		if handler, ok := cmdHandlerMap[i.ApplicationCommandData().Name]; ok {
+		if handler, ok := cmdHandlerMap[applicationCommandName]; ok {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Warningf("Recovered in handler %s with reason %s", applicationCommandName, r)
+				}
+			}()
 			handler(s, i)
 		} else {
 			log.Printf("received unknown application command %q", applicationCommandName)

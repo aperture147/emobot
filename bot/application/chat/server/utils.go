@@ -16,7 +16,8 @@ func NewCommandCollection(client *mongo.Client) application.CommandCollection {
 
 func (c commandCollection) GetAllCommands() (commands []application.Command) {
 	pingCommand := NewPingCommand(c.client)
-	evalCommand := eval.NewEvalCommand()
-	commands = append(commands, pingCommand, evalCommand)
+	evalCommandCollection := eval.NewCommandCollection()
+	commands = append(commands, pingCommand)
+	commands = append(commands, evalCommandCollection.GetAllCommands()...)
 	return commands
 }

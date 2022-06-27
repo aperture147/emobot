@@ -2,10 +2,10 @@ package eval
 
 import (
 	"emobot/bot/application"
+	"fmt"
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
 	"github.com/traefik/yaegi/interp"
-	"github.com/traefik/yaegi/stdlib"
 )
 
 type evalCommand struct {
@@ -29,8 +29,8 @@ var evalCommandDefinition = &discordgo.ApplicationCommand{
 	},
 }
 
-func NewEvalCommand() application.Command {
-	return &evalCommand{}
+func NewEvalCommand(execEnv map[string]*interp.Interpreter) application.Command {
+	return &evalCommand{execEnv}
 }
 
 func (c *evalCommand) Name() string {
@@ -42,24 +42,32 @@ func (c *evalCommand) Definition() *discordgo.ApplicationCommand {
 }
 
 func (c *evalCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	exec := interp.New(interp.Options{})
-	_ = exec.Use(stdlib.Symbols)
-
-	data := i.ApplicationCommandData()
-	code := data.Options[0].StringValue()
-	v, err := exec.Eval(code)
-
+	var exec *interp.Interpreter
+	var ok bool
 	var content string
+	userId := i.Member.User.ID
 
-	if err != nil {
-		log.Println("cannot evaluate code with reason:", err)
-		content = "cannot evaluate sticker"
+	if exec, ok = c.execEnv[userId]; !ok {
+		content = fmt.Sprintf("no existing environment found, create one by using `%s` command", initEvalCommandName)
+		log.Infof("user %s evaluated code on nil environment", userId)
 	} else {
-		log.Printf("user %s evaluated code %s", i.Member.User.ID, code)
-		content = v.String()
+		data := i.ApplicationCommandData()
+		code := data.Options[0].StringValue()
+		v, err := exec.Eval(code)
+		if err != nil {
+			log.Println("cannot evaluate code with reason:", err)
+			content = "cannot evaluate sticker with reason: " + err.Error()
+		} else {
+			log.Printf("user %s evaluated code %s", i.Member.User.ID, code)
+			if !v.IsValid() {
+				content = "no return"
+			} else {
+				content = v.String()
+			}
+		}
 	}
 
-	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: content,
