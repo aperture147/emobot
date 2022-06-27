@@ -2,7 +2,7 @@ package application
 
 import (
 	"github.com/bwmarrin/discordgo"
-	"log"
+	log "github.com/sirupsen/logrus"
 )
 
 type CommandCollection interface {
@@ -32,7 +32,7 @@ func PrepareHandler(guildId string, cmdList ...Command) (func(s *discordgo.Sessi
 		if handler, ok := cmdHandlerMap[i.ApplicationCommandData().Name]; ok {
 			handler(s, i)
 		} else {
-			log.Printf("received unknown application command %q\n", applicationCommandName)
+			log.Printf("received unknown application command %q", applicationCommandName)
 		}
 	}
 
@@ -45,8 +45,8 @@ func DeleteGuildCreatedCommands(s *discordgo.Session, guildId string, createdCom
 	for _, c := range createdCommands {
 		err = s.ApplicationCommandDelete(userId, guildId, c.ID)
 		if err != nil {
-			log.Printf("cannot delete %q command on guild %s, %v\n", c.Name, guildId, err)
+			log.Printf("cannot delete %q command on guild %s, %v", c.Name, guildId, err)
 		}
 	}
-	log.Printf("deleted all commands on guild %s\n", guildId)
+	log.Printf("deleted all commands on guild %s", guildId)
 }

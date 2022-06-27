@@ -11,7 +11,7 @@ func getTestStickerMongoArtifacts() (*mongo.Client, *mongo.Database, *mongo.Coll
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	db := GetGuildDatabase(client, "933206081570762763")
+	db := GetGuildDatabase("933206081570762763", client)
 	collection := db.Collection("sticker")
 	return client, db, collection, err
 }

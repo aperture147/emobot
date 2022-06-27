@@ -4,8 +4,8 @@ import (
 	"emobot/bot/application"
 	"emobot/bot/db"
 	"github.com/bwmarrin/discordgo"
+	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
-	"log"
 )
 
 type deleteStickerCommand struct {

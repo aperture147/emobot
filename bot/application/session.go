@@ -2,7 +2,7 @@ package application
 
 import (
 	"github.com/bwmarrin/discordgo"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"time"
 )

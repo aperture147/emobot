@@ -4,8 +4,8 @@ import (
 	"emobot/bot/application"
 	"emobot/bot/db"
 	"github.com/bwmarrin/discordgo"
+	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
-	"log"
 )
 
 type getStickerCommand struct {
@@ -54,10 +54,10 @@ func (c *getStickerCommand) Handler(s *discordgo.Session, i *discordgo.Interacti
 			log.Println("cannot get sticker with reason:", err)
 			content = "server error, cannot get sticker"
 		} else if sticker == nil {
-			log.Printf("user %s cannot get sticker %s\n", i.Member.User.ID, stickerId)
+			log.Printf("user %s cannot get sticker %s", i.Member.User.ID, stickerId)
 			content = "no sticker found"
 		} else {
-			log.Printf("user %s used sticker %s\n", i.Member.User.ID, stickerId)
+			log.Printf("user %s used sticker %s", i.Member.User.ID, stickerId)
 			content = sticker.Url
 		}
 

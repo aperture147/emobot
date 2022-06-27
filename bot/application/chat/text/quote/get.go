@@ -4,8 +4,8 @@ import (
 	"emobot/bot/application"
 	"emobot/bot/db"
 	"github.com/bwmarrin/discordgo"
+	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
-	"log"
 )
 
 type GetQuoteCommand struct {
@@ -54,10 +54,10 @@ func (c *GetQuoteCommand) Handler(s *discordgo.Session, i *discordgo.Interaction
 			log.Println("cannot get quote with reason:", err)
 			content = "server error, cannot get quote"
 		} else if quote == nil {
-			log.Printf("user %s cannot get quote %s\n", i.Member.User.ID, quoteId)
+			log.Printf("user %s cannot get quote %s", i.Member.User.ID, quoteId)
 			content = "no quote found"
 		} else {
-			log.Printf("user %s used quote %s\n", i.Member.User.ID, quoteId)
+			log.Printf("user %s used quote %s", i.Member.User.ID, quoteId)
 			content = quote.Content
 		}
 

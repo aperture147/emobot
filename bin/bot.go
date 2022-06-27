@@ -5,8 +5,10 @@ import (
 	"emobot/bot/db"
 	"emobot/utils"
 	"github.com/bwmarrin/discordgo"
+	"github.com/elastic/go-elasticsearch/v7"
+	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
-	"log"
+	"gopkg.in/go-extras/elogrus.v7"
 	"os"
 	"os/signal"
 	"syscall"
@@ -31,6 +33,25 @@ func init() {
 	if err != nil {
 		log.Fatalln("cannot create discord token, ", err)
 	}
+}
+
+// init logrus elasticsearch hook
+func init() {
+	elasticClient, err := elasticsearch.NewClient(elasticsearch.Config{
+		Addresses: []string{os.Getenv("BONSAI_URL")},
+	})
+	if err != nil {
+		log.Fatalln("cannot connect to elastic with reason:", err)
+	} else {
+		log.Infoln("elasticsearch client created")
+	}
+	hook, err := elogrus.NewAsyncElasticHook(elasticClient, "localhost", log.InfoLevel, "emobot")
+	if err != nil {
+		log.Fatalln("cannot using elasticsearch hook with reason:", err)
+	} else {
+		log.Infoln("elasticsearch hook added")
+	}
+	log.AddHook(hook)
 }
 
 func main() {
