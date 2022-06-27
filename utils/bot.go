@@ -3,6 +3,7 @@ package utils
 import (
 	"emobot/bot/application"
 	"emobot/bot/application/chat"
+	"emobot/bot/application/message"
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,11 +15,11 @@ func AddGuildCommands(session *discordgo.Session, client *mongo.Client, guildIdL
 	for _, guildId := range guildIdList {
 		go func(guildId string) {
 			chatCollection := chat.NewCommandCollection(guildId, client)
-			//messageCollection := message.NewCommandCollection(guildId, client)
+			messageCollection := message.NewCommandCollection(guildId, client)
 
 			var commands []application.Command
 			commands = append(commands, chatCollection.GetAllCommands()...)
-			//commands = append(commands, messageCollection.GetAllCommands()...)
+			commands = append(commands, messageCollection.GetAllCommands()...)
 
 			masterCmdHandler, cmdDefinitionList := application.PrepareHandler(guildId, commands...)
 			createdCommands, err := session.ApplicationCommandBulkOverwrite(session.State.User.ID, guildId, cmdDefinitionList)
