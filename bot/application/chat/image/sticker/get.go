@@ -42,9 +42,9 @@ func (c *getStickerCommand) Definition() *discordgo.ApplicationCommand {
 }
 
 func (c *getStickerCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
-		data := i.ApplicationCommandData()
 		stickerId := data.Options[0].StringValue()
 		sticker, err := db.GetSticker(c.collection, stickerId)
 
@@ -72,7 +72,6 @@ func (c *getStickerCommand) Handler(s *discordgo.Session, i *discordgo.Interacti
 		}
 
 	case discordgo.InteractionApplicationCommandAutocomplete:
-		data := i.ApplicationCommandData()
 		findAttr := data.Options[0].StringValue()
 
 		var stickerChoices []*discordgo.ApplicationCommandOptionChoice
