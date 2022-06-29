@@ -6,7 +6,6 @@ require (
 	github.com/bwmarrin/discordgo v0.25.0
 	github.com/elastic/go-elasticsearch/v7 v7.10.0
 	github.com/sirupsen/logrus v1.6.0
-	github.com/traefik/yaegi v0.13.0
 	go.mongodb.org/mongo-driver v1.8.3
 	gopkg.in/go-extras/elogrus.v7 v7.2.0
 )

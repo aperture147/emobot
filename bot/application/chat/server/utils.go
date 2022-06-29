@@ -2,7 +2,6 @@ package server
 
 import (
 	"emobot/bot/application"
-	"emobot/bot/application/chat/server/eval"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -15,9 +14,7 @@ func NewCommandCollection(client *mongo.Client) application.CommandCollection {
 }
 
 func (c commandCollection) GetAllCommands() (commands []application.Command) {
-	pingCommand := NewPingCommand(c.client)
-	evalCommandCollection := eval.NewCommandCollection()
-	commands = append(commands, pingCommand)
-	commands = append(commands, evalCommandCollection.GetAllCommands()...)
+	pingCmd := NewPingCommand(c.client)
+	commands = append(commands, pingCmd)
 	return commands
 }
