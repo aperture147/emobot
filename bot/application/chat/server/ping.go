@@ -56,7 +56,7 @@ func (c *pingCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCrea
 	databaseLatency, err := getDatabaseLatency(c.client)
 	var databaseLatencyStr string
 	if err != nil {
-		log.Println("cannot ping database with reason:", err)
+		log.WithField("guild_id", i.GuildID).Println("cannot ping database with reason:", err)
 		databaseLatencyStr = fmt.Sprintf("%s: %s\n", databaseLatencyIcon, warningIcon)
 	} else {
 		databaseLatencyStr = fmt.Sprintf("%s: %d ms\n", databaseLatencyIcon, databaseLatency)
@@ -76,6 +76,6 @@ func (c *pingCommand) Handler(s *discordgo.Session, i *discordgo.InteractionCrea
 		},
 	})
 	if err != nil {
-		log.Println("cannot send pong with reason:", err)
+		log.WithField("guild_id", i.GuildID).Println("cannot send pong with reason:", err)
 	}
 }

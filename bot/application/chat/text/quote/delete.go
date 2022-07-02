@@ -53,10 +53,10 @@ func (c *deleteQuoteCommand) Handler(s *discordgo.Session, i *discordgo.Interact
 
 		if err != nil {
 			content = "server error, cannot delete quote"
-			log.Println("cannot delete quote with reason:", err)
+			log.WithField("guild_id", i.GuildID).Println("cannot delete quote with reason:", err)
 		} else {
 			content = "quote `" + quote.Title + "` deleted"
-			log.Printf("user %s deleted quote %s", i.Member.User.ID, quoteId)
+			log.WithField("guild_id", i.GuildID).Printf("user %s deleted quote %s", i.Member.User.ID, quoteId)
 		}
 
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -67,7 +67,7 @@ func (c *deleteQuoteCommand) Handler(s *discordgo.Session, i *discordgo.Interact
 		})
 
 		if err != nil {
-			log.Println("cannot send delete message with reason:", err)
+			log.WithField("guild_id", i.GuildID).Println("cannot send delete message with reason:", err)
 		}
 
 	case discordgo.InteractionApplicationCommandAutocomplete:
@@ -81,7 +81,7 @@ func (c *deleteQuoteCommand) Handler(s *discordgo.Session, i *discordgo.Interact
 			quoteChoices, err = GetQuoteAutocompleteChoice(c.collection, findAttr)
 
 			if err != nil {
-				log.Println("autocomplete error with reason:", err)
+				log.WithField("guild_id", i.GuildID).Println("autocomplete error with reason:", err)
 			}
 		}
 
@@ -93,7 +93,7 @@ func (c *deleteQuoteCommand) Handler(s *discordgo.Session, i *discordgo.Interact
 		})
 
 		if err != nil {
-			log.Println("cannot send autocomplete command with reason:", err)
+			log.WithField("guild_id", i.GuildID).Println("cannot send autocomplete command with reason:", err)
 		}
 	}
 }

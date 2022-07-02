@@ -51,13 +51,13 @@ func (c *getStickerCommand) Handler(s *discordgo.Session, i *discordgo.Interacti
 		var content string
 
 		if err != nil {
-			log.Println("cannot get sticker with reason:", err)
+			log.WithField("guild_id", i.GuildID).Println("cannot get sticker with reason:", err)
 			content = "server error, cannot get sticker"
 		} else if sticker == nil {
-			log.Printf("user %s cannot get sticker %s", i.Member.User.ID, stickerId)
+			log.WithField("guild_id", i.GuildID).Printf("user %s cannot get sticker %s", i.Member.User.ID, stickerId)
 			content = "no sticker found"
 		} else {
-			log.Printf("user %s used sticker %s", i.Member.User.ID, stickerId)
+			log.WithField("guild_id", i.GuildID).Printf("user %s used sticker %s", i.Member.User.ID, stickerId)
 			content = sticker.Url
 		}
 
@@ -68,7 +68,7 @@ func (c *getStickerCommand) Handler(s *discordgo.Session, i *discordgo.Interacti
 			},
 		})
 		if err != nil {
-			log.Println("cannot send sticker with reason:", err)
+			log.WithField("guild_id", i.GuildID).Println("cannot send sticker with reason:", err)
 		}
 
 	case discordgo.InteractionApplicationCommandAutocomplete:
@@ -81,7 +81,7 @@ func (c *getStickerCommand) Handler(s *discordgo.Session, i *discordgo.Interacti
 			stickerChoices, err = GetStickerAutocompleteChoice(c.collection, findAttr)
 
 			if err != nil {
-				log.Println("autocomplete error with reason:", err)
+				log.WithField("guild_id", i.GuildID).Println("autocomplete error with reason:", err)
 			}
 		}
 
@@ -93,7 +93,7 @@ func (c *getStickerCommand) Handler(s *discordgo.Session, i *discordgo.Interacti
 		})
 
 		if err != nil {
-			log.Println("cannot send autocomplete command with reason:", err)
+			log.WithField("guild_id", i.GuildID).Println("cannot send autocomplete command with reason:", err)
 		}
 	}
 }

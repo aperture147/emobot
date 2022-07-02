@@ -60,12 +60,12 @@ func (c *createStickerCommand) Handler(s *discordgo.Session, i *discordgo.Intera
 
 	if err != nil {
 		content = "server error, cannot add sticker"
-		log.Println("cannot add sticker with reason:", err)
+		log.WithField("guild_id", i.GuildID).Println("cannot add sticker with reason:", err)
 	} else if stickerId == "" {
-		log.Printf("user %s failed to create a duplicated sticker %q", i.Member.User.ID, stickerName)
+		log.WithField("guild_id", i.GuildID).Printf("user %s failed to create a duplicated sticker %q", i.Member.User.ID, stickerName)
 		content = "sticker `" + stickerName + "` already exists"
 	} else {
-		log.Printf("user %s created sticker %q with ID %s", i.Member.User.ID, stickerName, stickerId)
+		log.WithField("guild_id", i.GuildID).Printf("user %s created sticker %q with ID %s", i.Member.User.ID, stickerName, stickerId)
 		content = "sticker `" + stickerName + "` added"
 	}
 
@@ -77,6 +77,6 @@ func (c *createStickerCommand) Handler(s *discordgo.Session, i *discordgo.Intera
 	})
 
 	if err != nil {
-		log.Println("cannot send create message with reason:", err)
+		log.WithField("guild_id", i.GuildID).Println("cannot send create message with reason:", err)
 	}
 }

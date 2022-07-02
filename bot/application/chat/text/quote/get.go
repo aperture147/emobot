@@ -51,13 +51,13 @@ func (c *GetQuoteCommand) Handler(s *discordgo.Session, i *discordgo.Interaction
 		var content string
 
 		if err != nil {
-			log.Println("cannot get quote with reason:", err)
+			log.WithField("guild_id", i.GuildID).Println("cannot get quote with reason:", err)
 			content = "server error, cannot get quote"
 		} else if quote == nil {
-			log.Printf("user %s cannot get quote %s", i.Member.User.ID, quoteId)
+			log.WithField("guild_id", i.GuildID).Printf("user %s cannot get quote %s", i.Member.User.ID, quoteId)
 			content = "no quote found"
 		} else {
-			log.Printf("user %s used quote %s", i.Member.User.ID, quoteId)
+			log.WithField("guild_id", i.GuildID).Printf("user %s used quote %s", i.Member.User.ID, quoteId)
 			content = quote.Content
 		}
 
@@ -68,7 +68,7 @@ func (c *GetQuoteCommand) Handler(s *discordgo.Session, i *discordgo.Interaction
 			},
 		})
 		if err != nil {
-			log.Println("cannot send quote with reason:", err)
+			log.WithField("guild_id", i.GuildID).Println("cannot send quote with reason:", err)
 		}
 
 	case discordgo.InteractionApplicationCommandAutocomplete:
@@ -82,7 +82,7 @@ func (c *GetQuoteCommand) Handler(s *discordgo.Session, i *discordgo.Interaction
 			quoteChoices, err = GetQuoteAutocompleteChoice(c.collection, findAttr)
 
 			if err != nil {
-				log.Println("autocomplete error with reason:", err)
+				log.WithField("guild_id", i.GuildID).Println("autocomplete error with reason:", err)
 			}
 		}
 
@@ -94,7 +94,7 @@ func (c *GetQuoteCommand) Handler(s *discordgo.Session, i *discordgo.Interaction
 		})
 
 		if err != nil {
-			log.Println("cannot send autocomplete command with reason:", err)
+			log.WithField("guild_id", i.GuildID).Println("cannot send autocomplete command with reason:", err)
 		}
 	}
 }

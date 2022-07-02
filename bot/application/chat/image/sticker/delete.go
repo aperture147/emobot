@@ -53,10 +53,10 @@ func (c *deleteStickerCommand) Handler(s *discordgo.Session, i *discordgo.Intera
 
 		if err != nil {
 			content = "server error, cannot delete sticker"
-			log.Println("cannot delete sticker with reason:", err)
+			log.WithField("guild_id", i.GuildID).Println("cannot delete sticker with reason:", err)
 		} else {
 			content = "sticker `" + sticker.Name + "` deleted"
-			log.Printf("user %s deleted sticker %s", i.Member.User.ID, stickerId)
+			log.WithField("guild_id", i.GuildID).Printf("user %s deleted sticker %s", i.Member.User.ID, stickerId)
 		}
 
 		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -67,7 +67,7 @@ func (c *deleteStickerCommand) Handler(s *discordgo.Session, i *discordgo.Intera
 		})
 
 		if err != nil {
-			log.Println("cannot send delete message with reason:", err)
+			log.WithField("guild_id", i.GuildID).Println("cannot send delete message with reason:", err)
 		}
 
 	case discordgo.InteractionApplicationCommandAutocomplete:
@@ -81,7 +81,7 @@ func (c *deleteStickerCommand) Handler(s *discordgo.Session, i *discordgo.Intera
 			stickerChoices, err = GetStickerAutocompleteChoice(c.collection, findAttr)
 
 			if err != nil {
-				log.Println("autocomplete error with reason:", err)
+				log.WithField("guild_id", i.GuildID).Println("autocomplete error with reason:", err)
 			}
 		}
 
@@ -93,7 +93,7 @@ func (c *deleteStickerCommand) Handler(s *discordgo.Session, i *discordgo.Intera
 		})
 
 		if err != nil {
-			log.Println("cannot send autocomplete command with reason:", err)
+			log.WithField("guild_id", i.GuildID).Println("cannot send autocomplete command with reason:", err)
 		}
 	}
 }

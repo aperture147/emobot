@@ -32,12 +32,12 @@ func PrepareHandler(guildId string, cmdList ...Command) (func(s *discordgo.Sessi
 		if handler, ok := cmdHandlerMap[applicationCommandName]; ok {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Warningf("Recovered in handler %s with reason %s", applicationCommandName, r)
+					log.WithField("guild_id", i.GuildID).Warningf("Recovered in handler %s with reason %s", applicationCommandName, r)
 				}
 			}()
 			handler(s, i)
 		} else {
-			log.Printf("received unknown application command %q", applicationCommandName)
+			log.WithField("guild_id", i.GuildID).Printf("received unknown application command %q", applicationCommandName)
 		}
 	}
 
@@ -50,8 +50,8 @@ func DeleteGuildCreatedCommands(s *discordgo.Session, guildId string, createdCom
 	for _, c := range createdCommands {
 		err = s.ApplicationCommandDelete(userId, guildId, c.ID)
 		if err != nil {
-			log.Printf("cannot delete %q command on guild %s, %v", c.Name, guildId, err)
+			log.WithField("guild_id", guildId).Printf("cannot delete %q command on guild %s, %v", c.Name, guildId, err)
 		}
 	}
-	log.Printf("deleted all commands on guild %s", guildId)
+	log.WithField("guild_id", guildId).Printf("deleted all commands on guild %s", guildId)
 }
