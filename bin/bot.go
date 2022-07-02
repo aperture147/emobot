@@ -4,6 +4,7 @@ import (
 	"emobot/bot/application"
 	"emobot/bot/db"
 	"emobot/utils"
+	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/elastic/go-elasticsearch/v7"
 	log "github.com/sirupsen/logrus"
@@ -19,7 +20,7 @@ var client *mongo.Client
 
 // Will delete later
 func init() {
-	println(os.Environ())
+	fmt.Printf("%+v", os.Environ())
 }
 
 // init mongo client
