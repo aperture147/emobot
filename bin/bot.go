@@ -17,6 +17,11 @@ import (
 var session *discordgo.Session
 var client *mongo.Client
 
+// Will delete later
+func init() {
+	println(os.Environ())
+}
+
 // init mongo client
 func init() {
 	var err error
