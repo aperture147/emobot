@@ -3,7 +3,6 @@ package utils
 import (
 	"emobot/bot/application"
 	"emobot/bot/application/chat"
-	"emobot/bot/application/message"
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,21 +13,22 @@ func AddGuildCommands(session *discordgo.Session, client *mongo.Client, guildIdL
 	guildCreatedCommands := make(map[string][]*discordgo.ApplicationCommand, len(guildIdList))
 	for _, guildId := range guildIdList {
 		go func(guildId string) {
-			chatCollection := chat.NewCommandCollection(guildId, client)
-			messageCollection := message.NewCommandCollection(guildId, client)
-
 			var commands []application.Command
+
+			chatCollection := chat.NewCommandCollection(guildId, client)
 			commands = append(commands, chatCollection.GetAllCommands()...)
-			commands = append(commands, messageCollection.GetAllCommands()...)
+
+			//messageCollection := message.NewCommandCollection(guildId, client)
+			//commands = append(commands, messageCollection.GetAllCommands()...)
 
 			masterCmdHandler, cmdDefinitionList := application.PrepareHandler(guildId, commands...)
 			createdCommands, err := session.ApplicationCommandBulkOverwrite(session.State.User.ID, guildId, cmdDefinitionList)
 			session.AddHandler(masterCmdHandler)
 
 			if err != nil {
-				log.Println("failed to add command to guild", guildId, "with reason:", err)
+				log.WithField("guild_id", guildId).Println("failed to add command to guild", guildId, "with reason:", err)
 			} else {
-				log.Println("application command added for guild", guildId)
+				log.WithField("guild_id", guildId).Println("application command added for guild", guildId)
 			}
 			guildCreatedCommands[guildId] = createdCommands
 		}(guildId)
