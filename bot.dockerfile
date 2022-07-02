@@ -1,6 +1,9 @@
 FROM golang:1.18-bullseye AS build-env
 
-RUN apk --no-cache add curl
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    curl \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
 
@@ -11,7 +14,17 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -gcflags="-l -l -l -l" -o bin/bot ./bin
 
-FROM debian:bullseye as run-env
+FROM python:3.10-bullseye as run-env
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    curl \
+    iproute2 \
+ && rm -rf /var/lib/apt/lists/*
+
+ADD ./.profile.d /app/.profile.d
+
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 WORKDIR /run
 
