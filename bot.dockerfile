@@ -22,7 +22,7 @@ RUN apt-get update \
     iproute2 \
  && rm -rf /var/lib/apt/lists/*
 
-ADD ./.profile.d /app/.profile.d
+ADD ./heroku-exec.sh /app/.profile.d/heroku-exec.sh
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
@@ -31,6 +31,7 @@ WORKDIR /run
 COPY --from=build-env /build/bin/bot .
 
 ENV BOT_TOKEN=placeholder \
-    MONGO_URI=placeholder
+    MONGO_URI=placeholder \
+    BONSAI_URL=placeholder
 
 CMD /run/bot
