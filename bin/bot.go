@@ -17,6 +17,8 @@ import (
 var session *discordgo.Session
 var client *mongo.Client
 
+const BotName = "emobot"
+
 // init mongo client
 func init() {
 	var err error
@@ -50,7 +52,7 @@ func init() {
 		log.Fatalln("cannot get hostname with reason:", err)
 	}
 	log.Infoln("hostname:", hostname)
-	hook, err := elogrus.NewAsyncElasticHook(elasticClient, "localhost", log.InfoLevel, "emobot")
+	hook, err := elogrus.NewAsyncElasticHook(elasticClient, hostname, log.InfoLevel, BotName)
 	if err != nil {
 		log.Fatalln("cannot using elasticsearch hook with reason:", err)
 	} else {
