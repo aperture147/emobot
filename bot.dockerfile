@@ -18,6 +18,7 @@ FROM debian:bullseye-slim as run-env
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
+    ca-certificates \
     curl \
     python \
     openssh-server \
