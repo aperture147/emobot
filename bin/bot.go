@@ -45,6 +45,11 @@ func init() {
 	} else {
 		log.Infoln("elasticsearch client created")
 	}
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Fatalln("cannot get hostname with reason:", err)
+	}
+	log.Infoln("hostname:", hostname)
 	hook, err := elogrus.NewAsyncElasticHook(elasticClient, "localhost", log.InfoLevel, "emobot")
 	if err != nil {
 		log.Fatalln("cannot using elasticsearch hook with reason:", err)
