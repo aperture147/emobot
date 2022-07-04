@@ -14,10 +14,12 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -gcflags="-l -l -l -l" -o bin/bot ./bin
 
-FROM python:3.10-bullseye as run-env
+FROM debian:bullseye-slim as run-env
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
+    curl \
+    python \
     openssh-server \
     iproute2 \
  && rm -rf /var/lib/apt/lists/*
